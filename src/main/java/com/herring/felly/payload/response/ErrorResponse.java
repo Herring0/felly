@@ -1,28 +1,16 @@
 package com.herring.felly.payload.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
 public class ErrorResponse {
 
     private int code;
+
     private String error;
 
-    public ErrorResponse(int code, String error) {
-        this.code = code;
-        this.error = error;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String message) {
-        this.error = message;
-    }
 }

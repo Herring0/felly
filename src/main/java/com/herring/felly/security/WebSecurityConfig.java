@@ -30,8 +30,8 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/clients/**").permitAll()
-                        .requestMatchers("/api/v1/test/**").permitAll()
+                        //.requestMatchers("/api/v1/clients/**").permitAll()
+                        //.requestMatchers("/api/v1/test/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

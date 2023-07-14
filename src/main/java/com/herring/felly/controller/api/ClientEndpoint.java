@@ -5,18 +5,26 @@ import com.herring.felly.payload.response.ClientsList;
 import com.herring.felly.payload.response.ErrorResponse;
 import com.herring.felly.payload.response.MessageResponse;
 import com.herring.felly.service.ClientService;
+import com.herring.felly.service.TrafficService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/api/v1/clients")
+@RequestMapping(value = "/api/v1/clients", produces = "application/json")
 public class ClientEndpoint {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private TrafficService trafficService;
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getClient(@PathVariable String id) {
@@ -36,22 +44,37 @@ public class ClientEndpoint {
 
     @GetMapping("/active")
     public ResponseEntity<?> getActiveClients() {
-        return ResponseEntity.ok(null);
+        ClientsList clients = new ClientsList(clientService.getActiveClients());
+        return ResponseEntity.ok(clients);
     }
 
     @GetMapping("/blocklist")
     public ResponseEntity<?> getBlockedClients() {
-        return ResponseEntity.ok(null);
+        List<ClientModel> clients = clientService.getClientsBlocklist();
+        return ResponseEntity.ok(clients);
     }
 
     @GetMapping("/{id}/traffic")
-    public ResponseEntity<?> getClientTraffic(@PathVariable String id, @RequestParam(required = false) int last_days, @RequestParam String start_date, @RequestParam String end_date) {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<?> getClientTraffic(@PathVariable String id,
+                                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_date,
+                                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_date) {
+        System.out.println("sd: " + start_date + " ed: " + end_date);
+        if (start_date == null && end_date == null) {
+            return ResponseEntity.ok(trafficService.getClientTraffic(id));
+        }  else if (start_date != null && end_date == null) {
+            return ResponseEntity.ok(trafficService.getClientTrafficStartGreaterThan(id, start_date));
+        } else if (start_date == null && end_date != null) {
+            return ResponseEntity.ok(trafficService.getClientTrafficStartLessThan(id, end_date));
+        } else {
+            return ResponseEntity.ok(trafficService.getClientTraffic(id, start_date, end_date));
+        }
     }
 
     @PostMapping(value={"/",""})
-    public ResponseEntity<?> createClient(@RequestBody String id) {
-        return ResponseEntity.ok(null);
+    public ResponseEntity<?> createClient(@RequestBody Map<String, String> request) {
+        System.out.println(request.get("id"));
+        ClientModel client = clientService.createClient(request.get("id"));
+        return ResponseEntity.ok(client);
     }
 
     @PostMapping("/{id}/block")
@@ -80,5 +103,18 @@ public class ClientEndpoint {
 
         clientService.unblockClient(id);
         return ResponseEntity.ok(null);
+    }
+
+    @GetMapping("/{id}/file")
+    public ResponseEntity<?> getFile(@PathVariable String id) {
+        FileSystemResource resource = new FileSystemResource("/etc/openvpn/clients/" + id + "/" + id + ".ovpn");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        ContentDisposition disposition = ContentDisposition
+                .inline()
+                .filename(resource.getFilename())
+                .build();
+        headers.setContentDisposition(disposition);
+        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 }

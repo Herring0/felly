@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,53 @@ public class ClientService {
             process = processBuilder.start();
             process.waitFor();
             return getClientsList(process);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ClientModel> getActiveClients() {
+        processBuilder = new ProcessBuilder();
+        processBuilder.command("cat", "/var/log/openvpn/openvpn-status.log");
+
+        try {
+            process = processBuilder.start();
+            process.waitFor();
+            return parseStatusLog(process);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<ClientModel> getClientsBlocklist() {
+        processBuilder = new ProcessBuilder();
+        processBuilder.command("ls", "/etc/openvpn/ccd");
+
+        try {
+            process = processBuilder.start();
+            process.waitFor();
+            return getClientsList(process);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    public ClientModel createClient(String id) {
+        processBuilder = new ProcessBuilder();
+        processBuilder.command("bash", "/etc/openvpn/easy-rsa/mc.sh", id);
+
+        try {
+            process = processBuilder.start();
+            process.waitFor();
+            return new ClientModel(id);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
@@ -92,10 +140,10 @@ public class ClientService {
 
     private int getCode(Process process) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String code = "";
+        String code;
 
         if ((code = reader.readLine()) != null) {
-            return Integer.valueOf(code);
+            return Integer.parseInt(code);
         } else return UNKNOWN_CODE;
     }
 
@@ -109,4 +157,27 @@ public class ClientService {
         }
         return clients;
     }
+
+    private List<ClientModel> parseStatusLog(Process process) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        List<ClientModel> clients = new ArrayList<>();
+        List<String> lines = new ArrayList<>();
+        String clientId;
+
+        while ((clientId = reader.readLine()) != null) {
+            lines.add(clientId);
+        }
+
+        for (int i = 3; i < lines.size(); i++) {
+            String line = lines.get(i);
+            if (line.equals("ROUTING TABLE")) {
+                break;
+            } else {
+                clients.add(new ClientModel(line.split(",")[0]));
+            }
+        }
+        return clients;
+    }
+
+
 }
