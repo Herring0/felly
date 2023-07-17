@@ -6,34 +6,32 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
-@Document("Traffic")
+@Document("clients")
 @Getter
 @Setter
-public class TrafficDocument {
+public class ClientDocument {
 
     @Id
     private ObjectId id;
 
-    @Field("client")
-    private String client;
+    @Field("name")
+    private String name;
 
-    @Field("ipv4")
-    private String ipv4;
+    @Field("isActive")
+    private boolean isActive;
 
-    @Field("bytesReceived")
-    private long bytesReceived;
+    @Field("isBlocked")
+    private boolean isBlocked;
 
-    @Field("bytesSent")
-    private long bytesSent;
 
-    public TrafficDocument(String user, String ipv4, long bytesReceived, long bytesSent) {
-        this.client = user;
-        this.ipv4 = ipv4;
-        this.bytesReceived = bytesReceived;
-        this.bytesSent = bytesSent;
+    public ClientDocument(String name, boolean isBlocked) {
+        this.name = name;
+        this.isActive = false;
+        this.isBlocked = isBlocked;
     }
 
     public LocalDateTime getCreatedAt() {

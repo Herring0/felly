@@ -1,6 +1,11 @@
 package com.herring.felly.service;
 
-import com.herring.felly.model.ClientModel;
+import com.herring.felly.document.ClientDocument;
+import com.herring.felly.repository.ClientRepository;
+import com.herring.felly.security.jwt.AuthEntryPointJwt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -13,45 +18,52 @@ import java.util.List;
 @Service
 public class ClientService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
+
     private ProcessBuilder processBuilder;
     private Process process;
 
+    @Autowired
+    private ClientRepository clientRepository;
+
     private final int UNKNOWN_CODE = 3;
 
-    public ClientModel getClient(String id) {
-        processBuilder = new ProcessBuilder();
-        processBuilder.command("ls", "/etc/openvpn/clients");
-
-        try {
-            process = processBuilder.start();
-            process.waitFor();
-            List<ClientModel> clients = getClientsList(process);
-            return clients.stream()
-                    .filter(client -> id.equals(client.getId()))
-                    .findAny().orElse(null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public ClientDocument getClient(String id) {
+//        processBuilder = new ProcessBuilder();
+//        processBuilder.command("ls", "/etc/openvpn/clients");
+//
+//        try {
+//            process = processBuilder.start();
+//            process.waitFor();
+//            List<ClientModel> clients = getClientsList(process);
+//            return clients.stream()
+//                    .filter(client -> id.equals(client.getId()))
+//                    .findAny().orElse(null);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+        return clientRepository.findByName(id);
     }
 
-    public List<ClientModel> getAllClients() {
-        processBuilder = new ProcessBuilder();
-        processBuilder.command("ls", "/etc/openvpn/clients");
-
-        try {
-            process = processBuilder.start();
-            process.waitFor();
-            return getClientsList(process);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public List<ClientDocument> getAllClients() {
+//        processBuilder = new ProcessBuilder();
+//        processBuilder.command("ls", "/etc/openvpn/clients");
+//
+//        try {
+//            process = processBuilder.start();
+//            process.waitFor();
+//            return getClientsList(process);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+        return clientRepository.findAll();
     }
 
-    public List<ClientModel> getActiveClients() {
+    public List<ClientDocument> getActiveClients() {
         processBuilder = new ProcessBuilder();
         processBuilder.command("cat", "/var/log/openvpn/openvpn-status.log");
 
@@ -66,7 +78,7 @@ public class ClientService {
         }
     }
 
-    public List<ClientModel> getClientsBlocklist() {
+    public List<ClientDocument> getClientsBlocklist() {
         processBuilder = new ProcessBuilder();
         processBuilder.command("ls", "/etc/openvpn/ccd");
 
@@ -83,14 +95,18 @@ public class ClientService {
 
 
 
-    public ClientModel createClient(String id) {
+    public int createClient(String id) {
         processBuilder = new ProcessBuilder();
-        processBuilder.command("bash", "/etc/openvpn/easy-rsa/mc.sh", id);
+        processBuilder.command("bash", "/etc/openvpn/scripts/mc.sh", id);
 
         try {
             process = processBuilder.start();
             process.waitFor();
-            return new ClientModel(id);
+            int code = getCode(process);
+            if (code == 0) {
+                clientRepository.save(new ClientDocument(id, false));
+            }
+            return code;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
@@ -142,25 +158,36 @@ public class ClientService {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String code;
 
-        if ((code = reader.readLine()) != null) {
-            return Integer.parseInt(code);
-        } else return UNKNOWN_CODE;
+        try {
+            if ((code = reader.readLine()) != null) {
+                logger.info("Script execute result: {}", code);
+                return Integer.parseInt(code);
+            } else return UNKNOWN_CODE;
+        } catch (NumberFormatException e) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logger.info("Script execute result: {}", line);
+            }
+            return -1;
+        }
+
     }
 
-    private List<ClientModel> getClientsList(Process process) throws IOException {
+    private List<ClientDocument> getClientsList(Process process) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        List<ClientModel> clients = new ArrayList<>();
+        List<ClientDocument> clients = new ArrayList<>();
         String clientId;
 
         while ((clientId = reader.readLine()) != null) {
-            clients.add(new ClientModel(clientId));
+            clients.add(clientRepository.findByName(clientId));
         }
         return clients;
     }
 
-    private List<ClientModel> parseStatusLog(Process process) throws IOException {
+    private List<ClientDocument> parseStatusLog(Process process) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        List<ClientModel> clients = new ArrayList<>();
+//        List<ClientModel> clients = new ArrayList<>();
+        List<ClientDocument> clients = new ArrayList<>();
         List<String> lines = new ArrayList<>();
         String clientId;
 
@@ -173,7 +200,8 @@ public class ClientService {
             if (line.equals("ROUTING TABLE")) {
                 break;
             } else {
-                clients.add(new ClientModel(line.split(",")[0]));
+//                clients.add(new ClientModel(line.split(",")[0]));
+                clients.add(clientRepository.findByName(line.split(",")[0]));
             }
         }
         return clients;

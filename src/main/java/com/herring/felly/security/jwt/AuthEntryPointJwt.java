@@ -39,6 +39,7 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
         System.out.print(request.getRemoteAddr());
         System.out.print("  :  ");
         System.out.println(request.getServletPath());
+        logger.info("Authorization token: ", request.getHeader("Authorization"));
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getOutputStream(), body);
     }

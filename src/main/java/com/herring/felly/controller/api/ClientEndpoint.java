@@ -1,18 +1,20 @@
 package com.herring.felly.controller.api;
 
-import com.herring.felly.model.ClientModel;
+import com.herring.felly.document.ClientDocument;
 import com.herring.felly.payload.response.ClientsList;
 import com.herring.felly.payload.response.ErrorResponse;
 import com.herring.felly.payload.response.MessageResponse;
+import com.herring.felly.security.jwt.AuthEntryPointJwt;
 import com.herring.felly.service.ClientService;
 import com.herring.felly.service.TrafficService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,9 +28,11 @@ public class ClientEndpoint {
     @Autowired
     private TrafficService trafficService;
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getClient(@PathVariable String id) {
-        ClientModel client = clientService.getClient(id);
+        ClientDocument client = clientService.getClient(id);
         if (client != null) {
             return ResponseEntity.ok(client);
         } else {
@@ -50,7 +54,7 @@ public class ClientEndpoint {
 
     @GetMapping("/blocklist")
     public ResponseEntity<?> getBlockedClients() {
-        List<ClientModel> clients = clientService.getClientsBlocklist();
+        ClientsList clients = new ClientsList(clientService.getClientsBlocklist());
         return ResponseEntity.ok(clients);
     }
 
@@ -58,7 +62,10 @@ public class ClientEndpoint {
     public ResponseEntity<?> getClientTraffic(@PathVariable String id,
                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start_date,
                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end_date) {
-        System.out.println("sd: " + start_date + " ed: " + end_date);
+
+        logger.info("start_date: {}", start_date);
+        logger.info("end_date: {}", end_date);
+
         if (start_date == null && end_date == null) {
             return ResponseEntity.ok(trafficService.getClientTraffic(id));
         }  else if (start_date != null && end_date == null) {
@@ -72,9 +79,16 @@ public class ClientEndpoint {
 
     @PostMapping(value={"/",""})
     public ResponseEntity<?> createClient(@RequestBody Map<String, String> request) {
-        System.out.println(request.get("id"));
-        ClientModel client = clientService.createClient(request.get("id"));
-        return ResponseEntity.ok(client);
+        int code = clientService.createClient(request.get("id"));
+        if (code == 0) {
+            ClientDocument client = clientService.getClient(request.get("id"));
+            return ResponseEntity.ok(client);
+        } else if (code == 1) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(code, "Client already exists"));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(code, "ERROR"));
+        }
+
     }
 
     @PostMapping("/{id}/block")
