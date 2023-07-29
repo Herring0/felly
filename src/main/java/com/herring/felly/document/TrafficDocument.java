@@ -29,8 +29,8 @@ public class TrafficDocument {
     @Field("bytesSent")
     private long bytesSent;
 
-    public TrafficDocument(String user, String ipv4, long bytesReceived, long bytesSent) {
-        this.client = user;
+    public TrafficDocument(String client, String ipv4, long bytesReceived, long bytesSent) {
+        this.client = client;
         this.ipv4 = ipv4;
         this.bytesReceived = bytesReceived;
         this.bytesSent = bytesSent;

@@ -22,7 +22,7 @@ public class TokenService implements UserDetailsService {
                     AuthorityUtils
                             .commaSeparatedStringToAuthorityList("ROLE_ADMIN"));
         } else {
-            throw new UsernameNotFoundException("User Not Found with username: " + token);
+            throw new UsernameNotFoundException("Token not found: " + token);
         }
     }
 }

@@ -12,13 +12,13 @@ import java.util.Optional;
 @Repository
 public interface TrafficRepository extends MongoRepository<TrafficDocument, String> {
 
-    @Query("{User: '?0'}")
+    @Query("{client: '?0'}")
     List<TrafficDocument> findAllByName(String name);
 
     Optional<TrafficDocument> findById(String id);
 
     @Query("{" +
-            "'User': ?0, " +
+            "'client': ?0, " +
             "'$expr': {" +
                 "$and: [" +
                     "{'$gte': [" +
@@ -33,7 +33,7 @@ public interface TrafficRepository extends MongoRepository<TrafficDocument, Stri
     List<TrafficDocument> findAllByNameAndPeriod(String name, LocalDateTime start, LocalDateTime end);
 
     @Query("{" +
-            "'User': ?0, " +
+            "'client': ?0, " +
             "'$expr': {" +
                 "'$gte': [" +
                     "{'$toDate': '$_id'}, " +
@@ -43,7 +43,7 @@ public interface TrafficRepository extends MongoRepository<TrafficDocument, Stri
     List<TrafficDocument> findAllByNameAndDateGreaterThan(String name, LocalDateTime start);
 
     @Query("{" +
-            "'User': ?0, " +
+            "'client': ?0, " +
             "'$expr': {" +
                 "'$lte': [" +
                     "{'$toDate': '$_id'}, " +
@@ -52,7 +52,7 @@ public interface TrafficRepository extends MongoRepository<TrafficDocument, Stri
             "}")
     List<TrafficDocument> findAllByNameAndDateLessThan(String name, LocalDateTime end);
 
-    TrafficDocument findFirstByOrderByUserDesc(String name);
+    TrafficDocument findFirstByOrderByClientDesc(String name);
 
     long count();
 

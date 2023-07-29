@@ -1,5 +1,7 @@
 package com.herring.felly.document;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -16,6 +18,7 @@ import java.time.ZoneId;
 public class ClientDocument {
 
     @Id
+    @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
 
     @Field("name")
@@ -27,11 +30,14 @@ public class ClientDocument {
     @Field("isBlocked")
     private boolean isBlocked;
 
+    @Field("isPaid")
+    private boolean isPaid;
 
-    public ClientDocument(String name, boolean isBlocked) {
+    public ClientDocument(String name) {
         this.name = name;
         this.isActive = false;
-        this.isBlocked = isBlocked;
+        this.isBlocked = false;
+        this.isPaid = true;
     }
 
     public LocalDateTime getCreatedAt() {

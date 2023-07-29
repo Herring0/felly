@@ -23,90 +23,49 @@ public class ClientService {
     private ProcessBuilder processBuilder;
     private Process process;
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
 
     private final int UNKNOWN_CODE = 3;
 
+    public ClientService(ClientRepository clientRepository) {
+        this.clientRepository = clientRepository;
+    }
+
     public ClientDocument getClient(String id) {
-//        processBuilder = new ProcessBuilder();
-//        processBuilder.command("ls", "/etc/openvpn/clients");
-//
-//        try {
-//            process = processBuilder.start();
-//            process.waitFor();
-//            List<ClientModel> clients = getClientsList(process);
-//            return clients.stream()
-//                    .filter(client -> id.equals(client.getId()))
-//                    .findAny().orElse(null);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
         return clientRepository.findByName(id);
     }
 
     public List<ClientDocument> getAllClients() {
-//        processBuilder = new ProcessBuilder();
-//        processBuilder.command("ls", "/etc/openvpn/clients");
-//
-//        try {
-//            process = processBuilder.start();
-//            process.waitFor();
-//            return getClientsList(process);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
         return clientRepository.findAll();
     }
 
-    public List<ClientDocument> getActiveClients() {
-        processBuilder = new ProcessBuilder();
-        processBuilder.command("cat", "/var/log/openvpn/openvpn-status.log");
-
-        try {
-            process = processBuilder.start();
-            process.waitFor();
-            return parseStatusLog(process);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public List<ClientDocument> getClients(boolean isActive, boolean isBlocked) {
+        return clientRepository.findByIsActiveAndIsBlocked(isActive, isBlocked);
     }
 
-    public List<ClientDocument> getClientsBlocklist() {
-        processBuilder = new ProcessBuilder();
-        processBuilder.command("ls", "/etc/openvpn/ccd");
-
-        try {
-            process = processBuilder.start();
-            process.waitFor();
-            return getClientsList(process);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public List<ClientDocument> getClientsByActive(boolean active) {
+        return clientRepository.findByIsActive(active);
     }
 
-
+    public List<ClientDocument> getClientsByBlock(boolean blocked) {
+        return clientRepository.findByIsBlocked(true);
+    }
 
     public int createClient(String id) {
         processBuilder = new ProcessBuilder();
-        processBuilder.command("bash", "/etc/openvpn/scripts/mc.sh", id);
+        processBuilder.command("bash", "/etc/openvpn/easy-rsa/mc.sh", id);
 
         try {
             process = processBuilder.start();
             process.waitFor();
-            int code = getCode(process);
-            if (code == 0) {
-                clientRepository.save(new ClientDocument(id, false));
+//            int code = getCode(process);
+            if (clientRepository.findByName(id) == null) {
+                clientRepository.save(new ClientDocument(id));
             }
-            return code;
+//            if (code == 0) {
+//                clientRepository.save(new ClientDocument(id));
+//            }
+            return 0;
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {

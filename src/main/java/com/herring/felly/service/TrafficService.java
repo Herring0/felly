@@ -2,13 +2,17 @@ package com.herring.felly.service;
 
 import com.herring.felly.document.TrafficDocument;
 import com.herring.felly.payload.response.TrafficResponse;
+import com.herring.felly.payload.response.TrafficStat;
 import com.herring.felly.repository.TrafficRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,6 +29,20 @@ public class TrafficService {
         trafficResponse.setEndDate(LocalDateTime.of(LocalDate.now(), LocalTime.now()));
         trafficResponse.setUser(id);
         return trafficResponse;
+    }
+
+    public List<TrafficDocument> getClientTrafficStat(String id, int hours) {
+        List<TrafficDocument> documents = trafficRepository.findAllByNameAndDateGreaterThan(id, LocalDateTime.of(LocalDate.now(), LocalTime.now()).minusHours(hours));
+//        List<TrafficStat> traffic = new ArrayList<>();
+//        for (int i = 0; i < hours; i++) {
+//            TrafficResponse response = trafficService.getClientTraffic(
+//                    id,
+//                    LocalDateTime.of(LocalDate.now(), LocalTime.now()).minusHours(i+1),
+//                    LocalDateTime.of(LocalDate.now(), LocalTime.now()).minusHours(i));
+//            traffic.add(new TrafficStat(Timestamp.valueOf(response.getEndDate()).getTime(), response.getBytesReceived()));
+//        }
+//        Collections.reverse(traffic);
+        return documents;
     }
 
     public TrafficResponse getClientTrafficStartGreaterThan(String id, LocalDateTime start) {
@@ -65,10 +83,6 @@ public class TrafficService {
 
         for (TrafficDocument document : trafficDocuments) {
             if (previousSent < document.getBytesSent()) {
-//                if (documents.indexOf(document) == documents.size() - 1) {
-//                    trafficResponse.setBytesSent(trafficResponse.getBytesSent() + document.getBytesSent());
-//                    trafficResponse.setBytesReceived(trafficResponse.getBytesReceived() + document.getBytesReceived());
-//                }
                 trafficResponse.setBytesSent(trafficResponse.getBytesSent() + (document.getBytesSent() - previousSent));
                 trafficResponse.setBytesReceived(trafficResponse.getBytesReceived() + (document.getBytesReceived() - previousReceived));
             } else {
