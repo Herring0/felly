@@ -1,14 +1,13 @@
 package com.herring.felly.controller.api;
 
 import com.herring.felly.document.ClientDocument;
-import com.herring.felly.document.TrafficDocument;
+import com.herring.felly.exceptions.FellyRecordAlreadyExistsException;
 import com.herring.felly.payload.response.*;
 import com.herring.felly.security.jwt.AuthEntryPointJwt;
 import com.herring.felly.service.ClientService;
 import com.herring.felly.service.TrafficService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.*;
@@ -26,13 +25,16 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/api/v1/clients", produces = "application/json")
 public class ClientEndpoint {
 
-    @Autowired
-    private ClientService clientService;
+    private final ClientService clientService;
 
-    @Autowired
-    private TrafficService trafficService;
+    private final TrafficService trafficService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
+
+    public ClientEndpoint(ClientService clientService, TrafficService trafficService) {
+        this.clientService = clientService;
+        this.trafficService = trafficService;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getClient(@PathVariable String id) {
@@ -40,7 +42,7 @@ public class ClientEndpoint {
         if (client != null) {
             return ResponseEntity.ok(client);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(1, "Client not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
         }
     }
 
@@ -51,18 +53,17 @@ public class ClientEndpoint {
 
         List<ClientDocument> clients = clientService.getAllClients();
 
-        if (active != null) {
+        if (active != null)
             clients = clients.stream().filter(client -> client.isActive() == active).collect(Collectors.toList());
-        }
-        if (blocked != null) {
+        if (blocked != null)
             clients = clients.stream().filter(client -> client.isBlocked() == blocked).collect(Collectors.toList());
-        }
-        if (paid != null) {
+        if (paid != null)
             clients = clients.stream().filter(client -> client.isPaid() == paid).collect(Collectors.toList());
-        }
 
         List<ClientDocument> finalClients = clients;
-        return ResponseEntity.ok(new HashMap<String, List<ClientDocument>>() {{ put("clients", finalClients); }});
+        return ResponseEntity.ok(new HashMap<String, List<ClientDocument>>() {{
+            put("clients", finalClients);
+        }});
     }
 
     @GetMapping("/{id}/traffic")
@@ -91,7 +92,7 @@ public class ClientEndpoint {
         for (int i = 0; i < hours; i++) {
             TrafficResponse response = trafficService.getClientTraffic(
                     id,
-                    LocalDateTime.of(LocalDate.now(), LocalTime.now()).minusHours(i+1),
+                    LocalDateTime.of(LocalDate.now(), LocalTime.now()).minusHours(i + 1),
                     LocalDateTime.of(LocalDate.now(), LocalTime.now()).minusHours(i));
             traffic.add(new TrafficStat(Timestamp.valueOf(response.getEndDate()).getTime(), response.getBytesReceived()));
         }
@@ -101,55 +102,62 @@ public class ClientEndpoint {
 
     @PostMapping(value = {"/", ""})
     public ResponseEntity<?> createClient(@RequestBody Map<String, String> request) {
-        int code = clientService.createClient(request.get("id"));
-        if (code == 0) {
-            ClientDocument client = clientService.getClient(request.get("id"));
+        try {
+            ClientDocument client = clientService.createClient(request.get("id"));
             return ResponseEntity.status(HttpStatus.CREATED).body(client);
-        } else if (code == 1) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(code, "Client already exists"));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(code, "ERROR"));
+        } catch (FellyRecordAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "Client already exists"));
         }
     }
 
     @PostMapping("/{id}/block")
     public ResponseEntity<?> blockClient(@PathVariable String id) {
-        int code = clientService.blockClient(id);
+        ClientDocument client = clientService.getClient(id);
 
-        if (code == 0) {
-            return ResponseEntity.ok(new MessageResponse(id, code, "The client has been blocked"));
-        } else if (code == 1) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(code, "Client already blocked"));
+        if (client != null) {
+            boolean blocked = clientService.blockClient(client);
+            if (blocked) {
+                return ResponseEntity.ok(new MessageResponse(id, 0, "The client has been blocked"));
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "Client already blocked"));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
         }
-
-        clientService.unblockClient(id);
-        return ResponseEntity.ok(null);
     }
 
     @PostMapping("/{id}/unblock")
     public ResponseEntity<?> unblockClient(@PathVariable String id) {
-        int code = clientService.unblockClient(id);
+        ClientDocument client = clientService.getClient(id);
 
-        if (code == 0) {
-            return ResponseEntity.ok(new MessageResponse(id, code, "The client has been unblocked"));
-        } else if (code == 1) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(code, "The client is not blocked"));
+        if (client != null) {
+            boolean unblocked = clientService.unblockClient(client);
+            if (unblocked) {
+                return ResponseEntity.ok(new MessageResponse(id, 0, "The client has been unblocked"));
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "The client is not blocked"));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
         }
-
-        clientService.unblockClient(id);
-        return ResponseEntity.ok(null);
     }
 
     @GetMapping("/{id}/file")
     public ResponseEntity<?> getFile(@PathVariable String id) {
-        FileSystemResource resource = new FileSystemResource("/etc/openvpn/clients/" + id + "/" + id + ".ovpn");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        ContentDisposition disposition = ContentDisposition
-                .inline()
-                .filename(resource.getFilename())
-                .build();
-        headers.setContentDisposition(disposition);
-        return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        ClientDocument client = clientService.getClient(id);
+
+        if (client != null) {
+            FileSystemResource resource = new FileSystemResource("/etc/openvpn/clients/" + client.getName() + "/" + client.getName() + ".ovpn");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            ContentDisposition disposition = ContentDisposition
+                    .inline()
+                    .filename(resource.getFilename())
+                    .build();
+            headers.setContentDisposition(disposition);
+            return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
+        }
     }
 }

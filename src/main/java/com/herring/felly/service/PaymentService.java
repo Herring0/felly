@@ -59,4 +59,8 @@ public class PaymentService {
         return payment;
     }
 
+    public List<PaymentDocument> getAllPayments() {
+        return paymentRepository.findAll();
+    }
+
 }
