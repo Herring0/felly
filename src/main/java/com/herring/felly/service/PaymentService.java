@@ -2,6 +2,7 @@ package com.herring.felly.service;
 
 import com.herring.felly.document.PaymentDocument;
 import com.herring.felly.repository.PaymentRepository;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,10 @@ public class PaymentService {
 
     public PaymentService(PaymentRepository paymentRepository) {
         this.paymentRepository = paymentRepository;
+    }
+
+    public PaymentDocument getPaymentById(ObjectId id) {
+        return paymentRepository.findById(id).orElse(null);
     }
 
     public List<PaymentDocument> getClientPayments(String client) {

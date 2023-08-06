@@ -1,5 +1,7 @@
 package com.herring.felly.document;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -15,6 +17,7 @@ import java.time.ZoneId;
 public class TrafficDocument {
 
     @Id
+    @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
 
     @Field("client")

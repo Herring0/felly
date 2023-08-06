@@ -3,6 +3,7 @@ package com.herring.felly.service;
 import com.herring.felly.document.TariffDocument;
 import com.herring.felly.enums.TariffType;
 import com.herring.felly.repository.TariffRepository;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,9 @@ public class TariffService {
         this.tariffRepository = tariffRepository;
     }
 
+    public TariffDocument getTariffById(ObjectId id) {
+        return tariffRepository.findById(id).orElse(null);
+    }
     public TariffDocument getTariffByName(String name) {
         return tariffRepository.findFirstByName(name).orElse(null);
     }

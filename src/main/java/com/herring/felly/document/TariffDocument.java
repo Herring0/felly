@@ -1,6 +1,9 @@
 package com.herring.felly.document;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.herring.felly.enums.TariffType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -8,7 +11,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Document("tariffs")
 @Getter
@@ -16,6 +20,7 @@ import java.util.Map;
 public class TariffDocument {
 
     @Id
+    @JsonSerialize(using = ToStringSerializer.class)
     private ObjectId id;
 
     @Field("name")
@@ -28,8 +33,32 @@ public class TariffDocument {
     private TariffType type;
 
     @Field("duration_in_days")
-    private int durationInDays;
+    private int duration_in_days;
 
     @Field("prices")
-    private Map prices;
+    private Prices prices;
+
+    public TariffDocument(String name, String description, TariffType type, int duration_in_days, Prices prices) {
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.duration_in_days = duration_in_days;
+        this.prices = prices;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return LocalDateTime.ofInstant(getId().getDate().toInstant(),
+                ZoneId.systemDefault());
+    }
+}
+
+@Getter
+@Setter
+@AllArgsConstructor
+class Prices {
+    private double USD;
+    private double EUR;
+    private double RUB;
+    private double TRY;
+    private double BTC;
 }
