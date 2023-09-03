@@ -8,16 +8,12 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@RequiredArgsConstructor
 public class TrafficResponse {
 
-    @NonNull
     private String user;
 
-    @NonNull
     private long bytesReceived;
 
-    @NonNull
     private long bytesSent;
 
     private LocalDateTime startDate;

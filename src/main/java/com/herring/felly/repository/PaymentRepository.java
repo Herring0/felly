@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PaymentRepository extends MongoRepository<PaymentDocument, String> {
+public interface PaymentRepository extends MongoRepository<PaymentDocument, ObjectId> {
+
 
     @Query("{client: '?0'}")
     List<PaymentDocument> findAllByClient(String client);
@@ -19,7 +20,7 @@ public interface PaymentRepository extends MongoRepository<PaymentDocument, Stri
 
     Optional<PaymentDocument> findFirstByClient(String client);
 
-    Optional<PaymentDocument> findTopByOrderByExpireAtDesc(String client);
+//    Optional<PaymentDocument> findTopByOrderByExpireAtDesc(String client);
 
     long count();
 

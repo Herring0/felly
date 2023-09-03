@@ -1,7 +1,7 @@
 package com.herring.felly.service;
 
 import com.herring.felly.document.TariffDocument;
-import com.herring.felly.enums.TariffType;
+import com.herring.felly.enums.ProductType;
 import com.herring.felly.repository.TariffRepository;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class TariffService {
         return tariffRepository.findAll();
     }
 
-    public List<TariffDocument> getAllTariffsByType(TariffType type) {
+    public List<TariffDocument> getAllTariffsByType(ProductType type) {
         return tariffRepository.findAllByType(type);
     }
 

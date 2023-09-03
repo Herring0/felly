@@ -42,7 +42,7 @@ public class ClientEndpoint {
         if (client != null) {
             return ResponseEntity.ok(client);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found."));
         }
     }
 
@@ -106,7 +106,7 @@ public class ClientEndpoint {
             ClientDocument client = clientService.createClient(request.get("id"));
             return ResponseEntity.status(HttpStatus.CREATED).body(client);
         } catch (FellyRecordAlreadyExistsException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "Client already exists"));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "Client already exists."));
         }
     }
 
@@ -117,12 +117,12 @@ public class ClientEndpoint {
         if (client != null) {
             boolean blocked = clientService.blockClient(client);
             if (blocked) {
-                return ResponseEntity.ok(new MessageResponse(id, 0, "The client has been blocked"));
+                return ResponseEntity.ok(new MessageResponse(id, 0, "The client has been blocked."));
             } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "Client already blocked"));
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "Client already blocked."));
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found."));
         }
     }
 
@@ -133,12 +133,12 @@ public class ClientEndpoint {
         if (client != null) {
             boolean unblocked = clientService.unblockClient(client);
             if (unblocked) {
-                return ResponseEntity.ok(new MessageResponse(id, 0, "The client has been unblocked"));
+                return ResponseEntity.ok(new MessageResponse(id, 0, "The client has been unblocked."));
             } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "The client is not blocked"));
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(1, "The client is not blocked."));
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found."));
         }
     }
 
@@ -157,7 +157,7 @@ public class ClientEndpoint {
             headers.setContentDisposition(disposition);
             return new ResponseEntity<>(resource, headers, HttpStatus.OK);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found."));
         }
     }
 }

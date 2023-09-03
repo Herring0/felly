@@ -1,8 +1,9 @@
 package com.herring.felly.document;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.herring.felly.enums.TariffType;
+import com.herring.felly.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +31,7 @@ public class TariffDocument {
     private String description;
 
     @Field("type")
-    private TariffType type;
+    private ProductType type;
 
     @Field("duration_in_days")
     private int duration_in_days;
@@ -38,7 +39,7 @@ public class TariffDocument {
     @Field("prices")
     private Prices prices;
 
-    public TariffDocument(String name, String description, TariffType type, int duration_in_days, Prices prices) {
+    public TariffDocument(String name, String description, ProductType type, int duration_in_days, Prices prices) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -50,15 +51,15 @@ public class TariffDocument {
         return LocalDateTime.ofInstant(getId().getDate().toInstant(),
                 ZoneId.systemDefault());
     }
-}
 
-@Getter
-@Setter
-@AllArgsConstructor
-class Prices {
-    private double USD;
-    private double EUR;
-    private double RUB;
-    private double TRY;
-    private double BTC;
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    public static class Prices {
+        @Field("USD") @JsonProperty("USD") private double USD;
+        @Field("EUR") @JsonProperty("EUR") private double EUR;
+        @Field("RUB") @JsonProperty("RUB") private double RUB;
+        @Field("TRY") @JsonProperty("TRY") private double TRY;
+        @Field("BTC") @JsonProperty("BTC") private double BTC;
+    }
 }

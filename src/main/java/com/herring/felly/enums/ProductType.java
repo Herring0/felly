@@ -1,5 +1,5 @@
 package com.herring.felly.enums;
 
-public enum TariffType {
+public enum ProductType {
     VPN, TEAM
 }

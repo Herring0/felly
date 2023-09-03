@@ -1,6 +1,8 @@
 package com.herring.felly.service;
 
+import com.herring.felly.document.ClientDocument;
 import com.herring.felly.document.PaymentDocument;
+import com.herring.felly.enums.PaymentStatus;
 import com.herring.felly.repository.PaymentRepository;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,14 @@ import java.util.List;
 @Service
 public class PaymentService {
 
-    final private PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
+    private final ClientService clientService;
+    private final TariffService tariffService;
 
-    public PaymentService(PaymentRepository paymentRepository) {
+    public PaymentService(PaymentRepository paymentRepository, ClientService clientService, TariffService tariffService) {
         this.paymentRepository = paymentRepository;
+        this.clientService = clientService;
+        this.tariffService = tariffService;
     }
 
     public PaymentDocument getPaymentById(ObjectId id) {
@@ -32,36 +38,31 @@ public class PaymentService {
         return paymentRepository.findFirstByClient(client).orElse(null);
     }
 
-    public PaymentDocument addPayment(String client, int days) {
-        PaymentDocument lastPayment = paymentRepository.findTopByOrderByExpireAtDesc(client).orElse(null);
-        LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.now());
-        PaymentDocument payment;
-
-        if (lastPayment != null) {
-            if (now.isAfter(lastPayment.getExpireAt())) {
-                payment = paymentRepository.save(new PaymentDocument(client, now.plusDays(days)));
-            } else {
-                payment = paymentRepository.save(new PaymentDocument(client, lastPayment.getExpireAt().plusDays(days)));
-            }
-        } else {
-            payment = paymentRepository.save(new PaymentDocument(client, now.plusDays(days)));
-        }
-
-        return payment;
-    }
-
     @Transactional
     public PaymentDocument createPayment(PaymentDocument payment) {
         paymentRepository.save(payment);
-
         return payment;
     }
 
     @Transactional
-    public PaymentDocument confirmPayment(String paymentId) {
-        PaymentDocument payment = paymentRepository.findById(paymentId).orElse(null);
+    public PaymentDocument confirmPayment(PaymentDocument paymentDocument) {
 
-        return payment;
+        ClientDocument client = clientService.getClient(paymentDocument.getClient());
+
+        if (client != null) {
+            LocalDateTime now = LocalDateTime.of(LocalDate.now(), LocalTime.now());
+
+            if (now.isAfter(client.getExpireAt())) {
+                client.setExpireAt(now.plusDays(tariffService.getTariffById(paymentDocument.getTariffId()).getDuration_in_days()));
+            } else {
+                client.setExpireAt(client.getExpireAt().plusDays(tariffService.getTariffById(paymentDocument.getTariffId()).getDuration_in_days()));
+            }
+
+            client.setPaid(true);
+            clientService.saveClient(client);
+            paymentDocument.setStatus(PaymentStatus.PAID);
+        }
+        return paymentRepository.save(paymentDocument);
     }
 
     public List<PaymentDocument> getAllPayments() {

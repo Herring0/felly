@@ -1,7 +1,7 @@
 package com.herring.felly.repository;
 
 import com.herring.felly.document.TariffDocument;
-import com.herring.felly.enums.TariffType;
+import com.herring.felly.enums.ProductType;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface TariffRepository extends MongoRepository<TariffDocument, String> {
 
     @Query("{type: '?0'}")
-    List<TariffDocument> findAllByType(TariffType type);
+    List<TariffDocument> findAllByType(ProductType type);
 
     Optional<TariffDocument> findById(ObjectId id);
 

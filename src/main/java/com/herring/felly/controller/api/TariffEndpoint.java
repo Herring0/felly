@@ -1,7 +1,7 @@
 package com.herring.felly.controller.api;
 
 import com.herring.felly.document.TariffDocument;
-import com.herring.felly.enums.TariffType;
+import com.herring.felly.enums.ProductType;
 import com.herring.felly.payload.response.ErrorResponse;
 import com.herring.felly.service.TariffService;
 import org.bson.types.ObjectId;
@@ -37,7 +37,7 @@ public class TariffEndpoint {
 
     @GetMapping("")
     public ResponseEntity<?> getTariffs(@RequestParam(required = false) String name,
-                                        @RequestParam(required = false) TariffType type) {
+                                        @RequestParam(required = false) ProductType type) {
 
         List<TariffDocument> tariffs = tariffService.getAllTariffs();
 

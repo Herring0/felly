@@ -2,6 +2,8 @@ package com.herring.felly.document;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.herring.felly.enums.ProductType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -11,6 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 
 @Document("clients")
 @Getter
@@ -33,6 +36,12 @@ public class ClientDocument {
     @Field("isPaid")
     private boolean isPaid;
 
+    @Field("expireAt")
+    private LocalDateTime expireAt;
+
+//    @Field("products")
+//    private List<Product> products;
+
     public ClientDocument(String name) {
         this.name = name;
         this.isActive = false;
@@ -45,3 +54,11 @@ public class ClientDocument {
                 ZoneId.systemDefault());
     }
 }
+
+//@Getter
+//@Setter
+//@AllArgsConstructor
+//class Product {
+//    private ProductType type;
+//    private LocalDateTime expiredAt;
+//}

@@ -56,6 +56,10 @@ public class ClientService {
         }
     }
 
+    public ClientDocument saveClient(ClientDocument clientDocument) {
+        return clientRepository.save(clientDocument);
+    }
+
     /**
     * 0 - success
     * 1 - client already blocked
@@ -101,9 +105,7 @@ public class ClientService {
                 clientRepository.save(client);
                 getCode(process);
                 return true;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
+            } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         } else {

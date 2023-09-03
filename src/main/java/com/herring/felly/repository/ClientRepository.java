@@ -1,12 +1,9 @@
 package com.herring.felly.repository;
 
 import com.herring.felly.document.ClientDocument;
-import com.herring.felly.document.TrafficDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
