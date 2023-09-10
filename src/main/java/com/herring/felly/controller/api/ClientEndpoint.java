@@ -49,9 +49,16 @@ public class ClientEndpoint {
     @GetMapping("")
     public ResponseEntity<?> getClients(@RequestParam(required = false) Boolean active,
                                         @RequestParam(required = false) Boolean blocked,
-                                        @RequestParam(required = false) Boolean paid) {
+                                        @RequestParam(required = false) Boolean paid,
+                                        @RequestParam(required = false) String keyword) {
 
-        List<ClientDocument> clients = clientService.getAllClients();
+        List<ClientDocument> clients;
+
+        if (keyword != null) {
+            clients = clientService.searchClients(keyword);
+        } else {
+            clients = clientService.getAllClients();
+        }
 
         if (active != null)
             clients = clients.stream().filter(client -> client.isActive() == active).collect(Collectors.toList());
@@ -160,4 +167,5 @@ public class ClientEndpoint {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(2, "Client not found."));
         }
     }
+
 }

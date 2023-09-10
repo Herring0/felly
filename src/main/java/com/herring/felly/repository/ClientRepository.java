@@ -21,7 +21,11 @@ public interface ClientRepository extends MongoRepository<ClientDocument, String
     List<ClientDocument> findByIsActive(boolean isActive);
     List<ClientDocument> findByIsBlocked(boolean isBlocked);
 
+    List<ClientDocument> findByIsPaid(boolean isPaid);
+
     List<ClientDocument> findByIsActiveAndIsBlocked(boolean isBlocked, boolean isActive);
+
+    List<ClientDocument> findByNameContainingIgnoreCase(String keyword);
 
     long count();
 

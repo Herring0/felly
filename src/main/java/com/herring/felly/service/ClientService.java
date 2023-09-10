@@ -60,6 +60,14 @@ public class ClientService {
         return clientRepository.save(clientDocument);
     }
 
+    public List<ClientDocument> searchClients(String keyword) {
+        return clientRepository.findByNameContainingIgnoreCase(keyword);
+    }
+
+    public List<ClientDocument> getPaidClients() {
+        return clientRepository.findByIsPaid(true);
+    }
+
     /**
     * 0 - success
     * 1 - client already blocked
