@@ -3,17 +3,13 @@ package com.herring.felly.document;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.herring.felly.enums.ProductType;
+import com.herring.felly.payload.enums.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 @Document("tariffs")
 @Getter
@@ -22,7 +18,7 @@ public class TariffDocument {
 
     @Id
     @JsonSerialize(using = ToStringSerializer.class)
-    private ObjectId id;
+    private String id;
 
     @Field("name")
     private String name;
@@ -47,10 +43,10 @@ public class TariffDocument {
         this.prices = prices;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return LocalDateTime.ofInstant(getId().getDate().toInstant(),
-                ZoneId.systemDefault());
-    }
+//    public LocalDateTime getCreatedAt() {
+//        return LocalDateTime.ofInstant(new ObjectId(getId()).getDate().toInstant(),
+//                ZoneId.systemDefault());
+//    }
 
     @Getter
     @Setter

@@ -2,9 +2,8 @@ package com.herring.felly.service;
 
 import com.herring.felly.document.ClientDocument;
 import com.herring.felly.document.PaymentDocument;
-import com.herring.felly.enums.PaymentStatus;
+import com.herring.felly.payload.enums.PaymentStatus;
 import com.herring.felly.repository.PaymentRepository;
-import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +25,7 @@ public class PaymentService {
         this.tariffService = tariffService;
     }
 
-    public PaymentDocument getPaymentById(ObjectId id) {
+    public PaymentDocument getPaymentById(String id) {
         return paymentRepository.findById(id).orElse(null);
     }
 

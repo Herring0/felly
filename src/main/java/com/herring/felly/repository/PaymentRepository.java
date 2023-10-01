@@ -16,7 +16,7 @@ public interface PaymentRepository extends MongoRepository<PaymentDocument, Obje
     @Query("{client: '?0'}")
     List<PaymentDocument> findAllByClient(String client);
 
-    Optional<PaymentDocument> findById(ObjectId id);
+    Optional<PaymentDocument> findById(String id);
 
     Optional<PaymentDocument> findFirstByClient(String client);
 

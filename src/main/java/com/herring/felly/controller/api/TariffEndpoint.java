@@ -1,10 +1,9 @@
 package com.herring.felly.controller.api;
 
 import com.herring.felly.document.TariffDocument;
-import com.herring.felly.enums.ProductType;
+import com.herring.felly.payload.enums.ProductType;
 import com.herring.felly.payload.response.ErrorResponse;
 import com.herring.felly.service.TariffService;
-import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,7 @@ public class TariffEndpoint {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getTariff(@PathVariable ObjectId id) {
+    public ResponseEntity<?> getTariff(@PathVariable String id) {
         TariffDocument tariff = tariffService.getTariffById(id);
         if (tariff != null) {
             return ResponseEntity.ok(tariffService.getTariffById(id));

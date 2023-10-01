@@ -2,12 +2,11 @@ package com.herring.felly.controller.api;
 
 import com.herring.felly.document.ClientDocument;
 import com.herring.felly.document.PaymentDocument;
-import com.herring.felly.enums.PaymentStatus;
+import com.herring.felly.payload.enums.PaymentStatus;
 import com.herring.felly.payload.response.ErrorResponse;
 import com.herring.felly.service.ClientService;
 import com.herring.felly.service.PaymentService;
 import com.herring.felly.service.TariffService;
-import org.bson.types.ObjectId;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +30,7 @@ public class PaymentEndpoint {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getPayment(@PathVariable ObjectId id) {
+    public ResponseEntity<?> getPayment(@PathVariable String id) {
         PaymentDocument payment = paymentService.getPaymentById(id);
 
         if (payment != null) {
@@ -69,7 +68,7 @@ public class PaymentEndpoint {
 
     @PostMapping("")
     public ResponseEntity<?> createPayment(@RequestBody PaymentDocument payment) {
-
+        System.out.println(payment.toString());
         if (clientService.getClient(payment.getClient()) != null) {
             if (tariffService.getTariffById(payment.getTariffId()) != null) {
                 return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createPayment(payment));
@@ -82,7 +81,7 @@ public class PaymentEndpoint {
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<?> confirmPayment(@PathVariable ObjectId id) {
+    public ResponseEntity<?> confirmPayment(@PathVariable String id) {
         PaymentDocument payment = paymentService.getPaymentById(id);
         if (payment != null) {
             if (payment.getStatus() == PaymentStatus.PAID) {

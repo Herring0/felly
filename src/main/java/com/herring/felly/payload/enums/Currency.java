@@ -1,4 +1,4 @@
-package com.herring.felly.enums;
+package com.herring.felly.payload.enums;
 
 public enum Currency {
     RUB, USD, EUR, TRY

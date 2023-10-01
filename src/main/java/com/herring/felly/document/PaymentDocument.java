@@ -4,13 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.herring.felly.enums.Currency;
-import com.herring.felly.enums.PaymentStatus;
-import lombok.AllArgsConstructor;
+import com.herring.felly.payload.enums.Currency;
+import com.herring.felly.payload.enums.PaymentStatus;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -22,7 +19,7 @@ public class PaymentDocument {
 
     @Id
     @JsonSerialize(using = ToStringSerializer.class)
-    private ObjectId id;
+    private String id;
 
     @Field("client")
     private String client;
@@ -40,7 +37,7 @@ public class PaymentDocument {
     @Field("tariff_id")
     @JsonProperty("tariff_id")
     @JsonSerialize(using = ToStringSerializer.class)
-    private ObjectId tariffId;
+    private String tariffId;
 
     @Field("status")
     @JsonIgnore
@@ -55,7 +52,7 @@ public class PaymentDocument {
         this.status = status;
     }
 
-    public PaymentDocument(String client, String PSP_id, Currency currency, double amount, ObjectId tariffId) {
+    public PaymentDocument(String client, String PSP_id, Currency currency, double amount, String tariffId) {
         this.client = client;
         this.PSP_id = PSP_id;
         this.currency = currency;
@@ -64,6 +61,19 @@ public class PaymentDocument {
     }
 
     public PaymentDocument() {
+    }
+
+    @Override
+    public String toString() {
+        return "PaymentDocument{" +
+                "id='" + id + '\'' +
+                ", client='" + client + '\'' +
+                ", PSP_id='" + PSP_id + '\'' +
+                ", currency=" + currency +
+                ", amount=" + amount +
+                ", tariffId='" + tariffId + '\'' +
+                ", status=" + status +
+                '}';
     }
 
     //    public PaymentDocument(String client) {

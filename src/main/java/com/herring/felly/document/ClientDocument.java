@@ -2,8 +2,6 @@ package com.herring.felly.document;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.herring.felly.enums.ProductType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -11,9 +9,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.List;
 
 @Document("clients")
 @Getter
@@ -46,7 +45,8 @@ public class ClientDocument {
         this.name = name;
         this.isActive = false;
         this.isBlocked = false;
-        this.isPaid = true;
+        this.isPaid = false;
+        this.expireAt = LocalDateTime.of(LocalDate.now(), LocalTime.now());
     }
 
     public LocalDateTime getCreatedAt() {

@@ -18,8 +18,11 @@ import java.util.List;
 @Service
 public class TrafficService {
 
-    @Autowired
-    private TrafficRepository trafficRepository;
+    private final TrafficRepository trafficRepository;
+
+    public TrafficService(TrafficRepository trafficRepository) {
+        this.trafficRepository = trafficRepository;
+    }
 
     public TrafficResponse getClientTraffic(String id) {
         List<TrafficDocument> documents = trafficRepository.findAllByName(id);
